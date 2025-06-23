@@ -1,1 +1,130 @@
-/* You can add global styles to this file, and also import other style files */
+/* src/styles.scss (Corrigé) */
+
+// 1. Définition des variables
+// On utilise une variable SASS ($) pour la couleur que l'on veut manipuler
+$primary-color: #0d6efd;
+
+:root {
+  --bg-color: #121212;
+  --surface-color: #1e1e1e;
+  // La variable CSS est initialisée avec la valeur de la variable SASS
+  --primary-color: #{$primary-color};
+  --text-color: #e0e0e0;
+  --text-muted-color: #a0a0a0;
+  --border-color: #333;
+  --error-color: #dc3545;
+  --success-color: #198754;
+
+  --border-radius: 6px;
+  --spacing-unit: 8px;
+}
+
+// 2. Reset et styles de base (inchangé)
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+main {
+  padding: calc(var(--spacing-unit) * 3);
+}
+
+// 3. Styles des éléments communs (modifications sur button)
+a {
+  // Ici, on peut garder la variable CSS car on ne la manipule pas
+  color: var(--primary-color); 
+  text-decoration: none;
+  transition: opacity 0.2s ease-in-out;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+button {
+  display: inline-block;
+  padding: calc(var(--spacing-unit) * 1.5) calc(var(--spacing-unit) * 3);
+  font-size: 1rem;
+  font-weight: 500;
+  color: #fff;
+  // On utilise la variable SASS pour que 'darken' fonctionne
+  background-color: $primary-color;
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+
+  &:hover {
+    // MAINTENANT ÇA MARCHE !
+    background-color: darken($primary-color, 10%);
+  }
+
+  &:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+  }
+}
+
+// 4. Styles pour les formulaires (inchangé)
+form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing-unit) * 2);
+  width: 100%;
+  max-width: 400px;
+  padding: calc(var(--spacing-unit) * 3);
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  margin: 0 auto;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  label {
+    margin-bottom: var(--spacing-unit);
+    color: var(--text-muted-color);
+    font-size: 0.9rem;
+  }
+
+  input {
+    padding: calc(var(--spacing-unit) * 1.5);
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: border-color 0.2s ease-in-out;
+
+    &:focus {
+      outline: none;
+      // Ici, la variable CSS est parfaite
+      border-color: var(--primary-color);
+    }
+  }
+
+  button[type="submit"] {
+    margin-top: var(--spacing-unit);
+  }
+
+  p {
+    text-align: center;
+    &.error {
+      color: var(--error-color);
+    }
+  }
+
+  + a {
+    margin-top: calc(var(--spacing-unit) * 2);
+  }
+}
