@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RegisterForm } from '../../core/interfaces/auth-form.interface'; // Notre type de formulaire
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
-import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 // Validateur custom pour vérifier que les mots de passe correspondent
@@ -18,8 +17,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 
 @Component({
   selector: 'app-register',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush, // On applique OnPush
   template: `
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
@@ -57,7 +55,7 @@ export class RegisterComponent {
   successMessage = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
 
-  // Le formulaire est maintenant fortement typé avec notre interface.
+  // Le formulaire est typé avec notre interface.
   registerForm = this.fb.group<RegisterForm>({
     email: this.fb.control('', [Validators.required, Validators.email]),
     password: this.fb.control('', [Validators.required, Validators.minLength(8)]),

@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, timer, of, throwError } from 'rxjs';
 import { switchMap, map, tap, takeWhile, first } from 'rxjs/operators';
 import { AuthService } from './auth';
+import { UserData } from '../interfaces/user.interface';
 
 // Interfaces (comme avant)
 interface AppRequestResponse { url: string; }
@@ -23,7 +24,7 @@ export class PertimmApiService {
     return new HttpHeaders({ 'Authorization': `Token ${token}` });
   }
 
-  createApplication(userData: { email: string, first_name: string, last_name: string }): Observable<string> {
+  createApplication(userData: UserData): Observable<string> {
     const headers = this.getAuthHeaders();
     const url = `${this.apiUrl}/job-application-request/`;
     return this.http.post<AppRequestResponse>(url, userData, { headers }).pipe(

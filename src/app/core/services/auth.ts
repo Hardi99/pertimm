@@ -2,7 +2,7 @@ import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
-import { User } from '../interfaces/user.interface';
+import { User, UserLogin, UserRegister } from '../interfaces/user.interface';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -14,7 +14,7 @@ export class AuthService {
   currentUser = signal<User | null>(this.getUserFromStorage());
   
   // Signal dérivé (computed). Il se met à jour automatiquement quand currentUser change.
-  isAuthenticated = computed(() => !!this.currentUser());
+  isAuthenticated = computed(() => this.currentUser());
   
   constructor() {
     // Un effect pour synchroniser le localStorage quand le signal change.
@@ -30,7 +30,7 @@ export class AuthService {
 
   // Les méthodes ne retournent que l'Observable HTTP. La mise à jour de l'état
   // est gérée ici, dans le service. "Le service fait le travail".
-  login(credentials: { email: string, password: string }): Observable<User> {
+  login(credentials: UserLogin): Observable<User> {
     return this.http.post<User>(`${this.authUrl}/login/`, credentials).pipe(
       tap(user => {
         this.currentUser.set(user); // On met à jour le signal
@@ -39,7 +39,7 @@ export class AuthService {
     );
   }
 
-  register(data: { email: string, password1: string, password2: string }): Observable<User> {
+  register(data: UserRegister): Observable<User> {
     return this.http.post<User>(`${this.authUrl}/register/`, data).pipe(
       tap(user => {
         this.currentUser.set(user); // On met à jour le signal

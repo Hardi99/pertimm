@@ -1,14 +1,12 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { LoginForm } from '../../core/interfaces/auth-form.interface';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink],
   template: `
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
       <h2>Connexion</h2>
@@ -22,8 +20,8 @@ import { AuthService } from '../../core/services/auth';
       </div>
       <button type="submit" [disabled]="loginForm.invalid">Se connecter</button>
 
-      @if (errorMessage) {
-        <p class="error">{{ errorMessage }}</p>
+      @if (errorMessage()) {
+        <p class="error">{{ errorMessage() }}</p>
       }
       <a style="text-align: center;" routerLink="/register">Pas de compte ? S'inscrire</a>
     </form>
@@ -35,8 +33,9 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   
-  successMessage = '';
-  errorMessage = '';
+  // Un signal local pour les messages d'erreur.
+  successMessage = signal<string | null>(null);
+  errorMessage = signal<string | null>(null);
 
   loginForm = this.fb.group<LoginForm>({
     email: this.fb.control('', [Validators.required, Validators.email]),
@@ -45,18 +44,18 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.invalid) {
-      this.errorMessage = 'Veuillez corriger les erreurs dans le formulaire.';
+      this.errorMessage.set('Veuillez corriger les erreurs dans le formulaire.');
       return;
     }
 
     this.authService.login(this.loginForm.value as any).subscribe({
       next: () => {
-        this.successMessage = 'User connecté avec succès ! Redirection vers le dashboard...';
+        this.successMessage.set('User connecté avec succès ! Redirection vers le dashboard...');
         // Puisque le service a déjà géré le token, on peut naviguer directement.
         setTimeout(() => this.router.navigate(['/dashboard']), 1000);
       },
       error: (err) => {
-        this.errorMessage = 'Email ou mot de passe incorrect.';
+        this.errorMessage.set('Email ou mot de passe incorrect.');
         console.error(err);
       }
     });

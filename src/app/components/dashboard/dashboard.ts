@@ -1,11 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PertimmApiService } from '../../core/services/pertimm-api';
 import { AuthService } from '../../core/services/auth';
-// ... autres imports
 
 @Component({
   selector: 'app-dashboard',
-  // ... imports standalone
   changeDetection: ChangeDetectionStrategy.OnPush, // On applique OnPush
   template: `
     <h2>Dashboard</h2>
@@ -48,7 +46,7 @@ export class DashboardComponent {
     if (!user) return;
 
     // Le composant délègue tout au service.
-    this.apiService.createApplication({ email: user.email, first_name: user.first_name, last_name: user.last_name })
+    this.apiService.createApplication({ email: user.email, firstName: user.first_name, lastName: user.last_name })
       .pipe(/* ... le reste du pipe RxJS ... */)
       .subscribe({
         next: () => { addLog('✅ TEST RÉUSSI !'); this.isLoading.set(false); },
