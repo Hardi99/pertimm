@@ -3,7 +3,7 @@
   <nav>
     <h1>Test Pertimm</h1>
     <div>
-      @if (authService.isAuthenticated$ | async) {
+      @if (authService.isAuthenticated()) {
         <a routerLink="/dashboard">Dashboard</a>
         <button (click)="authService.logout()">Logout</button>
       } @else {

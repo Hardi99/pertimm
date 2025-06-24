@@ -1,8 +1,9 @@
 import { Component, inject } from '@angular/core';
+import { LoginForm } from '../../core/interfaces/auth-form.interface';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../core/services/auth';
 
 @Component({
   selector: 'app-login',
@@ -37,9 +38,9 @@ export class LoginComponent {
   successMessage = '';
   errorMessage = '';
 
-  loginForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', Validators.required]
+  loginForm = this.fb.group<LoginForm>({
+    email: this.fb.control('', [Validators.required, Validators.email]),
+    password: this.fb.control('', Validators.required)
   });
 
   onSubmit() {

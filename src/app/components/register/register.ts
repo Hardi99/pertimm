@@ -1,9 +1,9 @@
-// Fichier : src/app/components/register/register.component.ts
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { RegisterForm } from '../../core/interfaces/auth-form.interface'; // Notre type de formulaire
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../services/auth';
+import { AuthService } from '../../core/services/auth';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 // Validateur custom pour vérifier que les mots de passe correspondent
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -20,6 +20,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
   selector: 'app-register',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush, // On applique OnPush
   template: `
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
       <h2>Créer un compte</h2>
@@ -42,8 +43,8 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 
       <button type="submit" [disabled]="registerForm.invalid">S'inscrire</button>
 
-      @if (successMessage) { <p>{{ successMessage }}</p> }
-      @if (errorMessage) { <p class="error">{{ errorMessage }}</p> }
+      @if (successMessage()) { <p>{{ successMessage() }}</p> }
+      @if (errorMessage()) { <p class="error">{{ errorMessage() }}</p> }
       <a style="text-align: center;" routerLink="/login">Déjà un compte ? Se connecter</a>
     </form>
   `
@@ -51,47 +52,31 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
-  private router = inject(Router);
+  
+  // Un signal local pour les messages d'erreur.
+  successMessage = signal<string | null>(null);
+  errorMessage = signal<string | null>(null);
 
-  successMessage = '';
-  errorMessage = '';
-
-  registerForm = this.fb.group({
-    email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(8)]], // On ajoute une contrainte de longueur
-    confirmPassword: ['', [Validators.required]]
-  }, { validators: passwordMatchValidator }); // On ajoute le validateur au groupe
+  // Le formulaire est maintenant fortement typé avec notre interface.
+  registerForm = this.fb.group<RegisterForm>({
+    email: this.fb.control('', [Validators.required, Validators.email]),
+    password: this.fb.control('', [Validators.required, Validators.minLength(8)]),
+    confirmPassword: this.fb.control('', [Validators.required])
+  }, { validators: passwordMatchValidator });
 
   onSubmit() {
-    if (this.registerForm.invalid) {
-      this.errorMessage = 'Veuillez corriger les erreurs dans le formulaire.';
-      return;
-    }
+    if (this.registerForm.invalid) return;
     
-    this.errorMessage = '';
-    const formValue = this.registerForm.getRawValue();
+    this.errorMessage.set(null);
+    const { email, password } = this.registerForm.getRawValue();
 
-    const registrationData = {
-      email: formValue.email!,
-      password1: formValue.password!,
-      password2: formValue.confirmPassword!
-    };
-
-    this.authService.register(registrationData).subscribe({
-      next: () => {
-        this.successMessage = 'Compte créé avec succès ! Redirection vers le dashboard...';
-        // Puisque le service a déjà géré le token, on peut naviguer directement.
-        setTimeout(() => this.router.navigate(['/dashboard']), 1000);
-      },
-      error: (err) => {
-        // On gère les erreurs renvoyées par l'API
-        if (err.error?.message) {
-          this.errorMessage = err.error.message;
-        } else {
-          this.errorMessage = 'Une erreur inconnue est survenue.';
-        }
-        console.error(err);
-      }
+    // Le composant envoie juste les données. Le service s'occupe de la redirection et de l'état.
+    this.authService.register({
+      email: email!,
+      password1: password!,
+      password2: password!
+    }).subscribe({
+      error: (err) => this.errorMessage.set(err.error?.message || 'Erreur inconnue.')
     });
   }
 }
