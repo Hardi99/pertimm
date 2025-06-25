@@ -23,6 +23,7 @@ export class AuthService {
     return this.http.post<User>(`${this.authUrl}/login/`, credentials).pipe(
       tap(user => {
         this.currentUser.set(user); // On met à jour le signal
+        localStorage.setItem('currentUser', JSON.stringify(user)); // Persistance
         console.log('User connecté:', user);
         this.router.navigate(['/dashboard']);
       })
@@ -33,6 +34,7 @@ export class AuthService {
     return this.http.post<User>(`${this.authUrl}/register/`, data).pipe(
       tap(user => {
         this.currentUser.set(user); // On met à jour le signal
+        localStorage.setItem('currentUser', JSON.stringify(user)); // Persistance
         this.router.navigate(['/dashboard']);
       })
     );
