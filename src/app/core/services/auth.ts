@@ -13,11 +13,12 @@ export class AuthService {
   // Le signal est la source de vérité. C'est un conteneur de valeur.
   currentUser = signal<User | null>(this.getUserFromStorage());
   
-  // Signal dérivé (computed). Il se met à jour automatiquement quand currentUser change.
-  isAuthenticated = computed(() => this.currentUser());
+  // Signal dérivé (computed). Retourne un booléen explicite.
+  isAuthenticated = computed(() => {
+    const user = this.currentUser();
+    return !!(user && typeof user.token === 'string' && user.token.length > 0);
+  });
 
-  // Les méthodes ne retournent que l'Observable HTTP. La mise à jour de l'état
-  // est gérée ici, dans le service. "Le service fait le travail".
   login(credentials: UserLogin): Observable<User> {
     return this.http.post<User>(`${this.authUrl}/login/`, credentials).pipe(
       tap(user => {
@@ -39,6 +40,7 @@ export class AuthService {
 
   logout(): void {
     this.currentUser.set(null); // On met à jour le signal
+    localStorage.removeItem('currentUser'); // On efface le stockage local
     this.router.navigate(['/login']);
   }
 
