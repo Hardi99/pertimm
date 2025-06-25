@@ -27,8 +27,15 @@ export class PertimmApiService {
   createApplication(userData: UserData): Observable<string> {
     const headers = this.getAuthHeaders();
     const url = `${this.apiUrl}/job-application-request/`;
-    return this.http.post<AppRequestResponse>(url, userData, { headers }).pipe(
-      map(response => response.url)
+    // Adapter les champs pour l'API
+    const payload = {
+      email: userData.email,
+      first_name: userData.firstName,
+      last_name: userData.lastName
+    };
+    return this.http.post<AppRequestResponse>(url, payload, { headers }).pipe(
+      map(response => response.url),
+      tap(url => console.log('Application request created:', url)),
     );
   }
 
@@ -37,7 +44,7 @@ export class PertimmApiService {
     // On va poller toutes les 2 secondes jusqu'à obtenir 'COMPLETED'
     return timer(0, 2000).pipe(
       switchMap(() => this.http.get<StatusResponse>(statusUrl, { headers })),
-      tap(response => console.log('Polling status:', response.status)),
+      tap(response => console.log('Polling status:', response.status, response)),
       // takeWhile s'arrête dès que la condition est fausse.
       // On le modifie pour inclure la dernière émission (COMPLETED).
       takeWhile(response => response.status !== 'COMPLETED', true) 

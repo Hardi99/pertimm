@@ -10,23 +10,11 @@ export class AuthService {
   private router = inject(Router);
   private authUrl = 'https://hire-game.pertimm.dev/api/v1.1/auth';
 
-  // Le signal est la nouvelle source de vérité. C'est un conteneur de valeur.
+  // Le signal est la source de vérité. C'est un conteneur de valeur.
   currentUser = signal<User | null>(this.getUserFromStorage());
   
   // Signal dérivé (computed). Il se met à jour automatiquement quand currentUser change.
   isAuthenticated = computed(() => this.currentUser());
-  
-  constructor() {
-    // Un effect pour synchroniser le localStorage quand le signal change.
-    effect(() => {
-      const user = this.currentUser();
-      if (user) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
-      } else {
-        localStorage.removeItem('currentUser');
-      }
-    });
-  }
 
   // Les méthodes ne retournent que l'Observable HTTP. La mise à jour de l'état
   // est gérée ici, dans le service. "Le service fait le travail".
@@ -34,6 +22,7 @@ export class AuthService {
     return this.http.post<User>(`${this.authUrl}/login/`, credentials).pipe(
       tap(user => {
         this.currentUser.set(user); // On met à jour le signal
+        console.log('User connecté:', user);
         this.router.navigate(['/dashboard']);
       })
     );

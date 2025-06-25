@@ -2,7 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RegisterForm } from '../../core/interfaces/auth-form.interface'; // Notre type de formulaire
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { UserRegister } from '../../core/interfaces/user.interface';
 
 // Validateur custom pour vérifier que les mots de passe correspondent
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -50,6 +51,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private router = inject(Router);
   
   // Un signal local pour les messages d'erreur.
   successMessage = signal<string | null>(null);
@@ -63,17 +65,18 @@ export class RegisterComponent {
   }, { validators: passwordMatchValidator });
 
   onSubmit() {
-    if (this.registerForm.invalid) return;
-    
-    this.errorMessage.set(null);
-    const { email, password } = this.registerForm.getRawValue();
+    if (this.registerForm.invalid) {
+      this.errorMessage.set('Veuillez corriger les erreurs dans le formulaire.');
+      return;
+    }
 
     // Le composant envoie juste les données. Le service s'occupe de la redirection et de l'état.
-    this.authService.register({
-      email: email!,
-      password1: password!,
-      password2: password!
-    }).subscribe({
+    this.authService.register(this.registerForm.value as UserRegister).subscribe({
+      next: () => {
+        this.successMessage.set('User enregistré avec succès ! Redirection vers le login...');
+        // Puisque le service a déjà géré le token, on peut naviguer directement.
+        setTimeout(() => this.router.navigate(['/login']), 1000);
+      },
       error: (err) => this.errorMessage.set(err.error?.message || 'Erreur inconnue.')
     });
   }

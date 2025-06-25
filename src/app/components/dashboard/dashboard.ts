@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { PertimmApiService } from '../../core/services/pertimm-api';
 import { AuthService } from '../../core/services/auth';
+import { first, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -43,14 +44,36 @@ export class DashboardComponent {
     };
 
     const user = this.currentUser();
-    if (!user) return;
+    if (!user) {
+      addLog('Utilisateur non connecté.');
+      this.isLoading.set(false);
+      return;
+    }
 
-    // Le composant délègue tout au service.
-    this.apiService.createApplication({ email: user.email, firstName: user.first_name, lastName: user.last_name })
-      .pipe(/* ... le reste du pipe RxJS ... */)
-      .subscribe({
-        next: () => { addLog('✅ TEST RÉUSSI !'); this.isLoading.set(false); },
-        error: (err) => { addLog(`❌ ERREUR : ${err.message}`); this.isLoading.set(false); }
-      });
+    // 1. Création de la demande
+    this.apiService.createApplication({
+      email: user.email,
+      firstName: user.first_name, // Pour respecter UserData
+      lastName: user.last_name
+    })
+    .pipe(
+      // 2. Polling du statut jusqu'à COMPLETED
+      switchMap((statusUrl: string) => {
+        addLog('Demande créée, polling du statut...');
+        return this.apiService.pollStatus(statusUrl).pipe(
+          first((resp) => resp.status === 'COMPLETED')
+        );
+      }),
+      // 3. Confirmation PATCH
+      switchMap((statusResp) => {
+        if (!statusResp.confirmation_url) throw new Error('Pas de confirmation_url dans la réponse');
+        addLog('Statut COMPLETED, confirmation en cours...');
+        return this.apiService.confirmApplication(statusResp.confirmation_url);
+      })
+    )
+    .subscribe({
+      next: () => { addLog('✅ TEST RÉUSSI !'); this.isLoading.set(false); },
+      error: (err) => { addLog(`❌ ERREUR : ${err.message}`); this.isLoading.set(false); }
+    });
   }
 }

@@ -3,6 +3,7 @@ import { LoginForm } from '../../core/interfaces/auth-form.interface';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth';
+import { UserLogin } from '../../core/interfaces/user.interface';
 
 @Component({
   selector: 'app-login',
@@ -48,7 +49,7 @@ export class LoginComponent {
       return;
     }
 
-    this.authService.login(this.loginForm.value as any).subscribe({
+    this.authService.login(this.loginForm.value as UserLogin).subscribe({
       next: () => {
         this.successMessage.set('User connecté avec succès ! Redirection vers le dashboard...');
         // Puisque le service a déjà géré le token, on peut naviguer directement.
