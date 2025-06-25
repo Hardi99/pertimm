@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RegisterForm } from '../../core/interfaces/auth-form.interface'; // Notre type de formulaire
+import { RegisterForm } from '@core/interfaces/auth-form.interface' // Notre type de formulaire
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
-import { AuthService } from '../../core/services/auth';
+import { AuthService } from '@core/services/auth';
 import { Router, RouterLink } from '@angular/router';
-import { UserRegister } from '../../core/interfaces/user.interface';
+import { UserRegister } from '@core/interfaces/user.interface';
 
 // Validateur custom pour vérifier que les mots de passe correspondent
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
@@ -73,9 +73,7 @@ export class RegisterComponent {
     // Le composant envoie juste les données. Le service s'occupe de la redirection et de l'état.
     this.authService.register(this.registerForm.value as UserRegister).subscribe({
       next: () => {
-        this.successMessage.set('User enregistré avec succès ! Redirection vers le login...');
-        // Puisque le service a déjà géré le token, on peut naviguer directement.
-        setTimeout(() => this.router.navigate(['/login']), 1000);
+        this.successMessage.set('User enregistré avec succès ! Connexion et redirection vers le dashboard...');
       },
       error: (err) => this.errorMessage.set(err.error?.message || 'Erreur inconnue.')
     });
